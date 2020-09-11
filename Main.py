@@ -6,8 +6,8 @@ import os
 import warnings
 import matplotlib.pyplot as plt
 import time
-# l'idée là est d'importer toutes les données nécessaires et ne variants pas.
-#
+
+# Paramètres et fichiers de données
 rho_air = 1.225
 rho_eau = 1025
 DELTA = 72
@@ -17,13 +17,12 @@ workbookQuille = load_workbook(filename="data/Polaires_Quille_data2.xlsm", data_
 workbookDVP = load_workbook(filename="data/Devis_masse.xlsx", data_only=True)
 workbookSafran = load_workbook(filename="data/Polaires_Safran_data2.xlsm", data_only=True)
 workbookStab = load_workbook(filename="data/Stab_data.xlsx", data_only=True)
-t0=time.time()
-def PFS(X, Vt, angle_allure):
 
+def PFS(X, Vt, angle_allure):
     V = float(X[0])
     PHI = float(X[1])
     LAMBDA = float(X[2])
-    #print("VALEURS EN DEBUT DE BOUCLE")
+    # print("VALEURS EN DEBUT DE BOUCLE")
     if V > fctAnnexes.nds2ms(10): #Polaires de safran et de quille ne sont plus prises en compte
         V = fctAnnexes.nds2ms(10)
         warnings.warn("Speed was above 10 kts and was reset to 10 kts.")
@@ -34,14 +33,16 @@ def PFS(X, Vt, angle_allure):
         PHI = np.deg2rad(-60)
         warnings.warn("Heeling angle was below -90 degrees and was reset to -60 degrees")
 
-    #print("V=", ms2nds(V), "noeuds", "              PHI=", np.rad2deg(PHI), "degrés", "              LAMBDA=", np.rad2deg(LAMBDA), "degrés")
+    # print("V=", ms2nds(V), "noeuds", "              PHI=", np.rad2deg(PHI), "degrés", "              LAMBDA=",
+    # np.rad2deg(LAMBDA), "degrés")
 
     T_aero = aero.torseur_Faero(Vt, V, angle_allure, LAMBDA, PHI, rho_eau, rho_air, workbookAero)
     T_safran = safran.torseur_Fhydro_safran(V, LAMBDA, PHI, rho_eau, workbookSafran)
     T_stab = stab.torseur_Fstab(DELTA,LAMBDA, PHI, theta, workbookStab)
     T_quille = quille.torseur_Fhydro_quille(V,LAMBDA, PHI, rho_eau, workbookQuille)
     T_resistance = resistance.torseur_Fresistance(V, LAMBDA, workbookDVP)
-    #print("T_aero","\n",T_aero,"___________","\n","T_safran","\n",T_safran,"___________","\n","T_stab","\n",T_stab,"___________","\n","T_quille","\n",T_quille,"___________","\n","T_resistance","\n",T_resistance)
+    # print("T_aero","\n",T_aero,"___________","\n","T_safran","\n",T_safran,"___________","\n","T_stab","\n",T_stab,
+    # "___________","\n","T_quille","\n",T_quille,"___________","\n","T_resistance","\n",T_resistance)
 
     SommeTorseurs = np.array([0., 0., 0.]).reshape((-1,))
     Fx_aero = T_aero[0][0]
@@ -83,47 +84,47 @@ if __name__ =="__main__":
     #warnings.filterwarnings('ignore', 'The iteration is not making good progress')
 
     # Paramètres de la série de simulations
-
     L_Vt = [25] #Liste des vitesses en noeud
-    L_angles = [k for k in range(50, 182, 10)] #Liste des angles d'allure en degrés
+    L_angles = [k for k in range(30, 182, 12)] #Liste des angles d'allure en degrés
     plot = True
-    save = True
 
+    # Saisie du nom du répertoire d'enregistrement
+    print("Saisir le nom ou le numéro de la série")
+    nom_serie = input()
+    t0 = time.time()
 
-    # Création des répertoires d'enregistrement
-    if save:
-        print("Saisir le nom ou le numéro de la série")
-        nom_serie = input()
-        mainfilename = "Serie_" + nom_serie
-        os.mkdir(mainfilename)
-        for Vt in L_Vt:
+    # Création du répertoire d'enregistrement principal
+    mainfilename = "Serie_" + nom_serie
+    os.mkdir(mainfilename)
 
-            # Paramètres pour initialiser la recherche de zéro
-            # Vs = nds2ms(Vt / 10)
-            # Lambda = np.deg2rad(2)
-            # phi = np.deg2rad(2*Vt)
-            Vs = 2
-            Lambda = np.deg2rad(5)
-            phi = np.deg2rad(10)
-            X0 = np.array([Vs, phi, Lambda]).reshape((-1, 1))
+    for Vt in L_Vt:
+        # Paramètres pour initialiser la recherche de zéro
+        # Vs = nds2ms(Vt / 10)
+        # Lambda = np.deg2rad(2)
+        # phi = np.deg2rad(2*Vt)
+        Vs = 2
+        Lambda = np.deg2rad(5)
+        phi = np.deg2rad(10)
+        X0 = np.array([Vs, phi, Lambda]).reshape((-1, 1))
 
-            Vtfilename = "Vt_" + str(Vt) + "kt"
+        # Création des répertoires d'enregistrement pour chaque vitesse
+        Vtfilename = "Vt_" + str(Vt) + "kt"
+        os.chdir(mainfilename)
+        os.mkdir(Vtfilename)
+        os.chdir("..")
+        for angle in L_angles:
+            # Création des répertoires d'enregistrement pour chaque angle (dans chaque répertoir de vitesse)
+            anglefilename = "AngleAllure_" + str(angle) + "deg"
             os.chdir(mainfilename)
-            os.mkdir(Vtfilename)
-            os.chdir("..")
-            for angle in L_angles:
-                anglefilename = "AngleAllure_" + str(angle) + "deg"
-                os.chdir(mainfilename)
-                os.chdir(Vtfilename)
-                os.mkdir(anglefilename)
-                os.chdir("../..")
+            os.chdir(Vtfilename)
+            os.mkdir(anglefilename)
+            os.chdir("../..")
 
-
-    print("Initialisation...OK")
-    print()
+    print("Initialisation...OK \n")
     # Résolution de l'équilibre
     mainfilename = "Serie_" + nom_serie
     BILAN_BILAN_Vs = []
+    fig = plt.figure()
     for Vt in L_Vt:
         print("Calculs pour Vt = "+str(Vt)+" kt")
         Vtfilename = "Vt_" + str(Vt) + "kt"
@@ -154,12 +155,11 @@ if __name__ =="__main__":
             BILAN_Fx.append(LISTE_Fx[-1])
             BILAN_Fy.append(LISTE_Fy[-1])
             BILAN_Mx.append(LISTE_Mx[-1])
-            if save:
-                path = mainfilename+"/"+Vtfilename+"/"+anglefilename
-                dataWriting.writeFile_rawdata("RESULTS",path,Vt,angle,[LISTEV,LISTEPHI,LISTELAMBDA,LISTE_Fx, LISTE_Fy, LISTE_Mx])
+
+            path = mainfilename+"/"+Vtfilename+"/"+anglefilename
+            dataWriting.writeFile_rawdata("RESULTS",path,Vt,angle,[LISTEV,LISTEPHI,LISTELAMBDA,LISTE_Fx, LISTE_Fy, LISTE_Mx])
 
             if plot:
-                fig = plt.figure()
                 fig.suptitle("Vt="+str(Vt)+"kts - angle allure = "+str(angle)+" degrés")
                 ax1 = fig.add_subplot(221)
                 ax1.set(xlabel='Nombre d itérations', ylabel='Vitesse (m/s)')
@@ -183,14 +183,15 @@ if __name__ =="__main__":
                 #plt.show()
                 os.chdir(path)
                 plt.savefig("Convergence_"+str(Vt)+"kt_"+str(angle)+"deg.png", format="png")
+                plt.clf()
                 os.chdir("../../..")
             print("        Calculs pour un angle d'allure de " + str(angle) + " deg...OK")
         print("Calculs pour Vt = "+str(Vt)+" kt...OK")
         print("Enregistrement des fichiers de sortie pour cette vitesse de vent")
         BILAN_BILAN_Vs.append(BILAN_Vs)
-        if save:
-            path = mainfilename + "/" + Vtfilename
-            dataWriting.writeFile_bilan("BILAN",path,Vt,[L_angles, BILAN_Vs, BILAN_Phi, BILAN_Lambda, BILAN_Fx, BILAN_Fy, BILAN_Mx])
+
+        path = mainfilename + "/" + Vtfilename
+        dataWriting.writeFile_bilan("BILAN",path,Vt,[L_angles, BILAN_Vs, BILAN_Phi, BILAN_Lambda, BILAN_Fx, BILAN_Fy, BILAN_Mx])
 
         if plot:
             L_theta = list(np.deg2rad(L_angles.copy()))
@@ -200,15 +201,15 @@ if __name__ =="__main__":
                 L_theta.append(-L_theta[i])
                 L_Vs.append(L_Vs[i])
 
-            plt.figure()
             ax = plt.subplot(111,polar=True)
             ax.plot(L_theta, L_Vs)
             ax.set_theta_zero_location("N")
             ax.set_theta_direction('clockwise')
-            if save:
-                os.chdir(path)
-                plt.savefig("Polaires_"+str(Vt)+"kt.png", format="png")
-                os.chdir("../..")
+
+            os.chdir(path)
+            plt.savefig("Polaires_"+str(Vt)+"kt.png", format="png")
+            plt.clf()
+            os.chdir("../..")
         print("Enregistrement des fichiers de sortie pour cette vitesse de vent...OK")
         print()
 
@@ -218,7 +219,6 @@ if __name__ =="__main__":
         for i in range(p-1, -1, -1):
             L_theta.append(-L_theta[i])
 
-        plt.figure()
         ax = plt.subplot(111, polar=True)
         ax.set_theta_zero_location("N")
         ax.set_theta_direction('clockwise')
@@ -229,11 +229,11 @@ if __name__ =="__main__":
                 L_Vs.append(L_Vs[i])
             ax.plot(L_theta, L_Vs, label = str(L_Vt[k])+" kt")
         plt.legend()
-        if save:
-            os.chdir(mainfilename)
-            plt.savefig("Polaires_voilier.png", format="png")
-            os.chdir("..")
-    print("Calcul terminé !")
-    tfin=time.time()
-    print(tfin-t0)
+
+        os.chdir(mainfilename)
+        plt.savefig("Polaires_voilier.png", format="png")
+        plt.clf()
+        os.chdir("..")
+    tfin = time.time()
+    print("Calcul terminé en "+str(round(tfin-t0,1))+" secondes")
 
