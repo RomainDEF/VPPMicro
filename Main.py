@@ -23,15 +23,15 @@ def PFS(X, Vt, angle_allure):
     PHI = float(X[1])
     LAMBDA = float(X[2])
     # print("VALEURS EN DEBUT DE BOUCLE")
-    if V > fctAnnexes.nds2ms(10): #Polaires de safran et de quille ne sont plus prises en compte
-        V = fctAnnexes.nds2ms(10)
-        warnings.warn("Speed was above 10 kts and was reset to 10 kts.")
-    if PHI > np.deg2rad(90): #On empeche une gite trop importante
-        PHI = np.deg2rad(60)
-        warnings.warn("Heeling angle was above 90 degrees and was reset to 60 degrees")
-    if PHI < np.deg2rad(-90): #On empeche une contre gite trop importante
-        PHI = np.deg2rad(-60)
-        warnings.warn("Heeling angle was below -90 degrees and was reset to -60 degrees")
+    #if V > fctAnnexes.nds2ms(10): #Polaires de safran et de quille ne sont plus prises en compte
+    #    V = fctAnnexes.nds2ms(10)
+    #    warnings.warn("Speed was above 10 kts and was reset to 10 kts.")
+    #if PHI > np.deg2rad(90): #On empeche une gite trop importante
+    #    PHI = np.deg2rad(60)
+    #    warnings.warn("Heeling angle was above 90 degrees and was reset to 60 degrees")
+    #if PHI < np.deg2rad(-90): #On empeche une contre gite trop importante
+    #    PHI = np.deg2rad(-60)
+    #    warnings.warn("Heeling angle was below -90 degrees and was reset to -60 degrees")
 
     # print("V=", ms2nds(V), "noeuds", "              PHI=", np.rad2deg(PHI), "degrés", "              LAMBDA=",
     # np.rad2deg(LAMBDA), "degrés")
@@ -67,8 +67,8 @@ def PFS(X, Vt, angle_allure):
     SommeTorseurs[1] = Mx_aero + Mx_quille + Mx_resistance + Mx_safran + Mx_stab
 
     # print("PFS=", SommeTorseurs)
-    if V > fctAnnexes.nds2ms(10): #Polaires de safran et de quille ne sont plus prises en compte
-        V = fctAnnexes.nds2ms(10)
+    # if V > fctAnnexes.nds2ms(10): #Polaires de safran et de quille ne sont plus prises en compte
+    #    V = fctAnnexes.nds2ms(10)
 
     LISTEV.append(V)
     LISTEPHI.append(PHI)
@@ -84,8 +84,8 @@ if __name__ =="__main__":
     #warnings.filterwarnings('ignore', 'The iteration is not making good progress')
 
     # Paramètres de la série de simulations
-    L_Vt = [25] #Liste des vitesses en noeud
-    L_angles = [k for k in range(30, 182, 12)] #Liste des angles d'allure en degrés
+    L_Vt = [30] #Liste des vitesses en noeud
+    L_angles = [k for k in range(50, 181, 2)] #Liste des angles d'allure en degrés
     plot = True
 
     # Saisie du nom du répertoire d'enregistrement
@@ -124,6 +124,8 @@ if __name__ =="__main__":
     # Résolution de l'équilibre
     mainfilename = "Serie_" + nom_serie
     BILAN_BILAN_Vs = []
+    BILAN_BILAN_Phi = []
+    BILAN_BILAN_Lambda = []
     fig = plt.figure()
     for Vt in L_Vt:
         print("Calculs pour Vt = "+str(Vt)+" kt")
@@ -189,6 +191,8 @@ if __name__ =="__main__":
         print("Calculs pour Vt = "+str(Vt)+" kt...OK")
         print("Enregistrement des fichiers de sortie pour cette vitesse de vent")
         BILAN_BILAN_Vs.append(BILAN_Vs)
+        BILAN_BILAN_Phi.append(BILAN_Phi)
+        BILAN_BILAN_Lambda.append(BILAN_Lambda)
 
         path = mainfilename + "/" + Vtfilename
         dataWriting.writeFile_bilan("BILAN",path,Vt,[L_angles, BILAN_Vs, BILAN_Phi, BILAN_Lambda, BILAN_Fx, BILAN_Fy, BILAN_Mx])
@@ -232,6 +236,36 @@ if __name__ =="__main__":
 
         os.chdir(mainfilename)
         plt.savefig("Polaires_voilier.png", format="png")
+        plt.clf()
+        os.chdir("..")
+
+        ax = plt.subplot(111)
+        ax.grid(True)
+        for k in range(len(BILAN_BILAN_Phi)):
+            L_Vs = np.rad2deg(BILAN_BILAN_Phi[k].copy())
+            ax.plot(L_angles, L_Vs, label=str(L_Vt[k]) + " kt")
+            ax.set_title("Angle de gîte en fonction de l'angle d'allure")
+            ax.set_xlabel("Angle d'allure [deg]")
+            ax.set_ylabel("Angle de gîte [deg]")
+        plt.legend()
+
+        os.chdir(mainfilename)
+        plt.savefig("Phi_voilier.png", format="png", dpi=600)
+        plt.clf()
+        os.chdir("..")
+
+        ax = plt.subplot(111)
+        ax.grid(True)
+        for k in range(len(BILAN_BILAN_Lambda)):
+            L_Vs = np.rad2deg(BILAN_BILAN_Lambda[k].copy())
+            ax.plot(L_angles, L_Vs, label=str(L_Vt[k]) + " kt")
+            ax.set_title("Angle de dérive en fonction de l'angle d'allure")
+            ax.set_xlabel("Angle d'allure [deg]")
+            ax.set_ylabel("Angle de dérive [deg]")
+        plt.legend()
+
+        os.chdir(mainfilename)
+        plt.savefig("Lambda_voilier.png", format="png", dpi=600)
         plt.clf()
         os.chdir("..")
     tfin = time.time()
