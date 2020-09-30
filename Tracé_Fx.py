@@ -72,7 +72,6 @@ def Tracé_en_PHI():
     L_Fxstab = []
     L_Fxresistance = []
     for PHI in L_phi:
-        print(PHI)
         T_aero = aero.torseur_Faero(Vt, V, angle_allure, LAMBDA, PHI, rho_eau, rho_air, workbookAero)
         T_safran = safran.torseur_Fhydro_safran(V, LAMBDA, PHI, rho_eau, workbookSafran)
         T_stab = stab.torseur_Fstab(DELTA, LAMBDA, PHI, theta, workbookStab)
@@ -117,12 +116,11 @@ def Tracé_en_Vs():
     L_Fxstab = []
     L_Fxresistance = []
     for V in L_Vs:
-        print(V)
-        T_aero = aero.torseur_Faero(Vt, V, angle_allure, LAMBDA, PHI, rho_eau, rho_air)
-        T_safran = safran.torseur_Fhydro_safran(V, LAMBDA, PHI, rho_eau)
-        T_stab = stab.torseur_Fstab(DELTA, LAMBDA, PHI, theta)
-        T_quille = quille.torseur_Fhydro_quille(V, LAMBDA, PHI, rho_eau)
-        T_resistance = resistance.torseur_Fresistance(V, LAMBDA)
+        T_aero = aero.torseur_Faero(Vt, V, angle_allure, LAMBDA, PHI, rho_eau, rho_air, workbookAero)
+        T_safran = safran.torseur_Fhydro_safran(V, LAMBDA, PHI, rho_eau, workbookSafran)
+        T_stab = stab.torseur_Fstab(DELTA, LAMBDA, PHI, theta, workbookStab)
+        T_quille = quille.torseur_Fhydro_quille(V, LAMBDA, PHI, rho_eau, workbookQuille)
+        T_resistance = resistance.torseur_Fresistance(V, LAMBDA, workbookDVP)
         Fx_aero = T_aero[0][0]
         Fx_safran = T_safran[0][0]
         Fx_quille = T_quille[0][0]
@@ -148,5 +146,7 @@ def Tracé_en_Vs():
     plt.show()
 
 if __name__=="__main__":
+    Tracé_en_Lambda()
     Tracé_en_PHI()
+    Tracé_en_Vs()
     plt.show()
