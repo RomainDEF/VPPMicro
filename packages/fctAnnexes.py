@@ -106,13 +106,17 @@ def trouver_lignes_resistance(workbook, sheet_name, Vs_nds):
     correspondant aux numéros de ligne dans fichier encadrant la valeur de Vs_nds.
     """
     sheet = workbook[sheet_name]
-    if Vs_nds > 20:
-        raise ValueError("boat speed exceding 20knots")
+    # Limite supprimée, remplacée par une interpolation linéaire de la résistance au dessus de 20knt afin de laisser l'algo d'optim travailler
+    # if Vs_nds > 20:
+    #     raise ValueError("boat speed exceding 20knots")
     i = 9
     Vs_nds_sup = sheet["AC"+str(i+1)].value
-    while Vs_nds > Vs_nds_sup:
-        i+=1
-        Vs_nds_sup = sheet["AC" + str(i+1)].value
+    if Vs_nds <= 20:
+        while Vs_nds > Vs_nds_sup:
+            i+=1
+            Vs_nds_sup = sheet["AC" + str(i+1)].value
+    else:
+        i = 20
     lignes = [i, i+1]
     return lignes
 

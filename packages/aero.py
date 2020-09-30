@@ -58,10 +58,14 @@ def polaire_voile(Vt, Vs, rho_air, Lambda, angle_allure, phi, workbook):
         i = 0
         Va_inf = v_bateau[i]
         Va_sup = v_bateau[i + 1]
-        while Va_nds > Va_sup:
-            i += 1
-            Va_inf = v_bateau[i]
-            Va_sup = v_bateau[i + 1]
+        if Va_nds <= v_bateau[-1]:
+            while Va_nds > Va_sup:
+                i += 1
+                Va_inf = v_bateau[i]
+                Va_sup = v_bateau[i + 1]
+        else:
+            Va_inf = v_bateau[-1]
+            Va_sup = v_bateau[-2]
         sheet_inf = workbook[str(Va_inf) + "kts"]  # On ouvre la feuille de calcul correspondant a Vainf
         sheet_sup = workbook[str(Va_sup) + "kts"]  # On ouvre la feuille de calcul correspondant a Vasup
         alpha_opt_Vainf = np.deg2rad(sheet_inf["N2"].value)
@@ -118,10 +122,16 @@ def polaire_voile(Vt, Vs, rho_air, Lambda, angle_allure, phi, workbook):
             i = 0
             Va_inf = v_bateau[i]
             Va_sup = v_bateau[i + 1]
-            while Va_nds > Va_sup:
-                i += 1
-                Va_inf = v_bateau[i]
-                Va_sup = v_bateau[i + 1]
+            # Limite ajoutée correspond à la vitesse max des données du tableur, après ces limites les données sont
+            # interpolées linéairement
+            if Va_nds <= v_bateau[-1]:
+                while Va_nds > Va_sup:
+                    i += 1
+                    Va_inf = v_bateau[i]
+                    Va_sup = v_bateau[i + 1]
+            else:
+                Va_inf = v_bateau[-1]
+                Va_sup = v_bateau[-2]
             # Va_inf et Va_sup encadrent la valeur de vent apparent, par des valeurs où la polaire de voile est connue.
             Lignes1, Lignes2 = fctAnnexes.trouver_lignes(workbook, alpha, [Va_inf, Va_sup])
             sheet_inf = workbook[str(Va_inf) + "kts"]  # On ouvre la feuille de calcul correspondant a Vainf

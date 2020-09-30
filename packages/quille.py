@@ -56,10 +56,14 @@ def polaire_quille(Vs, rho_eau, Lambda, phi, workbook):
             i = 0
             Vf_inf = v_bateau[i]
             Vf_sup = v_bateau[i+1]
-            while Vf_nds > Vf_sup:
-                i+=1
-                Vf_inf = v_bateau[i]
-                Vf_sup = v_bateau[i+1]
+            if Vf_nds <= v_bateau[-1]:
+                while Vf_nds > Vf_sup:
+                    i += 1
+                    Vf_inf = v_bateau[i]
+                    Vf_sup = v_bateau[i + 1]
+            else:
+                Vf_inf = v_bateau[-1]
+                Vf_sup = v_bateau[-2]
             if alpha > np.deg2rad(19.9):
                 alpha = np.deg2rad(19.9)
             # Vf_inf et Vf_sup encadrent la valeur de la vitesse vue par les appendices, par des valeurs où la polaire de la quille est connue.

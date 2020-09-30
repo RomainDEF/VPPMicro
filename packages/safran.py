@@ -55,10 +55,14 @@ def polaire_safran(Vs, rho_eau, Lambda, phi, workbook):
             i = 0
             Vf_inf = v_bateau[i]
             Vf_sup = v_bateau[i+1]
-            while Vf_nds > Vf_sup:
-                i+=1
-                Vf_inf = v_bateau[i]
-                Vf_sup = v_bateau[i+1]
+            if Vf_nds <= v_bateau[-1]:
+                while Vf_nds > Vf_sup:
+                    i += 1
+                    Vf_inf = v_bateau[i]
+                    Vf_sup = v_bateau[i + 1]
+            else:
+                Vf_inf = v_bateau[-1]
+                Vf_sup = v_bateau[-2]
             # Vf_inf et Vf_sup encadrent la valeur de la vitesse du bateau, par des valeurs où la polaire du safran est connue.
             if alpha > np.deg2rad(19.9):
                 alpha = np.deg2rad(19.9)
